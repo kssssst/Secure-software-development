@@ -49,7 +49,7 @@ public class MessageController {
         Message exist = repo.findById(id).orElse(null);
         if (exist == null) return null;
         exist.setContent(m.getContent());
-        // несложно поменять sender/receiver/listing если передали id
+
         if (m.getSender() != null && m.getSender().getId() != null) {
             User s = userRepo.findById(m.getSender().getId()).orElse(null);
             exist.setSender(s);
