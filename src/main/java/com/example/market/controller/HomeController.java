@@ -5,8 +5,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class HomeController {
-    @GetMapping("/")
+    @GetMapping("/home")
     public String home() {
-        return "Привет! API доступно по /api/users и другим /api/*";
+        return "Привет! Страницы доступны по /api/users и другим /api/*";
     }
 }

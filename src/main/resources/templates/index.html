@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Market</title>
+    <meta charset="UTF-8">
+</head>
+<body>
+<h1>Welcome to Market!</h1>
+<p>This is the main page.</p>
+
+<div th:if="${#authorization.expression('isAuthenticated()')}">
+    <p>You are logged in!</p>
+    <form th:action="@{/logout}" method="post">
+        <button type="submit">Logout</button>
+    </form>
+</div>
+<div th:unless="${#authorization.expression('isAuthenticated()')}">
+    <p><a th:href="@{/login}">Login</a> or <a th:href="@{/register}">Register</a></p>
+</div>
+</body>
+</html>
