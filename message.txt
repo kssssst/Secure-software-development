@@ -1,0 +1,95 @@
+# Создаем пользователя 1 - продавец
+curl -X POST http://localhost:8080/api/users \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Алексей",
+    "email": "alexey@example.com"
+  }'
+
+# Создаем пользователя 2 - покупатель
+curl -X POST http://localhost:8080/api/users \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Ольга",
+    "email": "olga@example.com"
+  }'
+
+# Создаем пользователя 3 - другой покупатель
+curl -X POST http://localhost:8080/api/users \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Дмитрий",
+    "email": "dmitry@example.com"
+  }'
+
+ # Алексей продает MacBook
+ curl -X POST http://localhost:8080/api/listings \
+   -H "Content-Type: application/json" \
+   -d '{
+     "title": "MacBook Pro 2022",
+     "description": "Отличное состояние, 16ГБ RAM, 512ГБ SSD",
+     "price": 120000,
+     "seller": {"id": 1}
+   }'
+
+# Сообщение 1: Ольга интересуется товаром
+curl -X POST http://localhost:8080/api/messages \
+  -H "Content-Type: application/json" \
+  -d '{
+    "content": "Здравствуйте! MacBook еще доступен? Какой у него процессор?",
+    "sender": {"id": 2},
+    "receiver": {"id": 1},
+    "listing": {"id": 1}
+  }'
+
+# Сообщение 2: Алексей отвечает
+curl -X POST http://localhost:8080/api/messages \
+  -H "Content-Type: application/json" \
+  -d '{
+    "content": "Добрый день! Да, еще доступен. Процессор Apple M2, 10 ядер.",
+    "sender": {"id": 1},
+    "receiver": {"id": 2},
+    "listing": {"id": 1}
+  }'
+
+# Сообщение 3: Ольга уточняет
+curl -X POST http://localhost:8080/api/messages \
+  -H "Content-Type: application/json" \
+  -d '{
+    "content": "Спасибо! А гарантия осталась? И возможен ли торг?",
+    "sender": {"id": 2},
+    "receiver": {"id": 1},
+    "listing": {"id": 1}
+  }'
+
+# Сообщение 4: Алексей отвечает
+curl -X POST http://localhost:8080/api/messages \
+  -H "Content-Type: application/json" \
+  -d '{
+    "content": "Гарантия до конца года. По цене могу уступить до 115000.",
+    "sender": {"id": 1},
+    "receiver": {"id": 2},
+    "listing": {"id": 1}
+  }'
+
+  # Сообщение 5: Дмитрий пишет
+  curl -X POST http://localhost:8080/api/messages \
+    -H "Content-Type: application/json" \
+    -d '{
+      "content": "Привет! MacBook еще в продаже? Готов забрать сегодня.",
+      "sender": {"id": 3},
+      "receiver": {"id": 1},
+      "listing": {"id": 1}
+    }'
+
+  # Сообщение 6: Алексей отвещает Дмитрию
+  curl -X POST http://localhost:8080/api/messages \
+    -H "Content-Type: application/json" \
+    -d '{
+      "content": "Здравствуйте! Пока да, но уже есть заинтересованный покупатель. Если сегодня заберете - ваш.",
+      "sender": {"id": 1},
+      "receiver": {"id": 3},
+      "listing": {"id": 1}
+    }'
+
+
