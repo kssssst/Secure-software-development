@@ -65,6 +65,6 @@ public class ListingController {
     @PreAuthorize("hasRole('ADMIN')") // доступ только для админов
     public String delete(@PathVariable Long id) {
         repo.deleteById(id);
-        return "ok";
+        return "ok!";
     }
 }
