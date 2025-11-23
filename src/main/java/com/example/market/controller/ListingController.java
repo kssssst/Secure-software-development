@@ -8,6 +8,8 @@ import com.example.market.repository.UserRepository;
 import com.example.market.repository.CategoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
+
 
 import java.util.List;
 
@@ -60,6 +62,7 @@ public class ListingController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')") // доступ только для админов
     public String delete(@PathVariable Long id) {
         repo.deleteById(id);
         return "ok";
