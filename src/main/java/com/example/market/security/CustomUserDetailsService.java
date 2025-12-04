@@ -39,11 +39,8 @@ public class CustomUserDetailsService implements UserDetailsService {
     }
 
     private Collection<? extends GrantedAuthority> getAuthorities(User user) {
-        // Добавляем префикс ROLE_ для Spring Security
+        // Роль берется как есть из базы
         String role = user.getRole();
-        if (role != null && !role.startsWith("ROLE_")) {
-            role = "ROLE_" + role;
-        }
         return Collections.singletonList(new SimpleGrantedAuthority(role));
     }
 }

@@ -1,15 +1,17 @@
 package com.example.market.config;
 
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import com.example.market.security.CustomUserDetailsService;
+import com.example.market.security.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.Customizer;
-import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.beans.factory.annotation.Autowired;
-import com.example.market.security.CustomUserDetailsService;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.config.Customizer;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -19,34 +21,20 @@ public class SecurityConfig {
     @Autowired
     private CustomUserDetailsService customUserDetailsService;
 
+    @Autowired
+    private JwtAuthenticationFilter jwtAuthenticationFilter;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
-                        // Доступ без аутентификации
                         .requestMatchers(
-                                "/",
-                                "/login",
-                                "/register",
-                                "/css/**",
-                                "/js/**",
-                                "/images/**",
-                                "/webjars/**",
-                                "/favicon.ico"
+                                "/", "/login", "/register",
+                                "/css/**", "/js/**", "/images/**",
+                                "/webjars/**", "/favicon.ico"
                         ).permitAll()
-
-                        // REST API требует роли ADMIN для удаления и редактирования пользователей
                         .requestMatchers("/api/users/**").hasRole("ADMIN")
-
-                        // Веб-контроллеры требуют аутентификации
-                        .requestMatchers(
-                                "/home",
-                                "/category/**",
-                                "/user/profile",
-                                "/message/**"
-                        ).authenticated()
-
-                        // Все остальные запросы требуют аутентификации
+                        .requestMatchers("/home", "/category/**", "/user/profile", "/message/**").authenticated()
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
@@ -59,21 +47,20 @@ public class SecurityConfig {
                         .logoutSuccessUrl("/login?logout=true")
                         .permitAll()
                 )
-                .userDetailsService(customUserDetailsService)
                 .csrf(csrf -> csrf.disable())
-                .httpBasic(Customizer.withDefaults()); // Включаем Basic Auth для Postman и REST
+                .userDetailsService(customUserDetailsService)
+                .httpBasic(Customizer.withDefaults());
+
+        http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        // Plain text password encoder для тестирования
         return new PasswordEncoder() {
             @Override
-            public String encode(CharSequence rawPassword) {
-                return rawPassword.toString();
-            }
+            public String encode(CharSequence rawPassword) { return rawPassword.toString(); }
 
             @Override
             public boolean matches(CharSequence rawPassword, String encodedPassword) {
