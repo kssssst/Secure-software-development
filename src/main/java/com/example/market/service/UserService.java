@@ -2,9 +2,8 @@ package com.example.market.service;
 
 import com.example.market.model.User;
 import com.example.market.repository.UserRepository;
-import com.example.market.dto.UserDto;
+import com.example.market.dto.UserResponseDTO;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,36 +15,23 @@ public class UserService {
     @Autowired
     private UserRepository userRepository;
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
-    // Временно уберем метод регистрации чтобы скомпилировать
-    // public User registerNewUser(UserRegistrationDto registrationDto) { ... }
-
-    // Преобразование User в UserDto
-    public UserDto convertToDto(User user) {
-        if (user == null) {
-            return null;
-        }
-        return new UserDto(
-                user.getId(),
-                user.getName(),
-                user.getEmail(),
-                user.getRole()
-        );
+    // Преобразование User в UserResponseDTO
+    public UserResponseDTO convertToDTO(User user) {
+        if (user == null) return null;
+        return new UserResponseDTO(user);
     }
 
     // Получение всех пользователей как DTO
-    public List<UserDto> getAllUsers() {
+    public List<UserResponseDTO> getAllUsers() {
         return userRepository.findAll()
                 .stream()
-                .map(this::convertToDto)
+                .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
 
     // Получение пользователя по ID как DTO
-    public UserDto getUserById(Long id) {
+    public UserResponseDTO getUserById(Long id) {
         User user = userRepository.findById(id).orElse(null);
-        return convertToDto(user);
+        return convertToDTO(user);
     }
 }

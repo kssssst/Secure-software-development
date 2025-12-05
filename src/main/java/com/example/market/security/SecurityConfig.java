@@ -1,4 +1,4 @@
-package com.example.market.config;
+package com.example.market.security;
 
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.context.annotation.Bean;
