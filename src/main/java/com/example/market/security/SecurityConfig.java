@@ -1,4 +1,4 @@
-package com.example.market.config;
+package com.example.market.security;
 
 import com.example.market.security.CustomUserDetailsService;
 import com.example.market.security.JwtAuthenticationFilter;
@@ -26,32 +26,46 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+
         http
+                .csrf(csrf -> csrf.disable())
+                .userDetailsService(customUserDetailsService)
+
+                // ВАЖНО: Сначала фильтр JWT
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                "/", "/login", "/register",
-                                "/css/**", "/js/**", "/images/**",
-                                "/webjars/**", "/favicon.ico"
-                        ).permitAll()
+                        // Открытые страницы сайта
+                        .requestMatchers("/", "/login", "/register",
+                                "/css/**", "/js/**", "/images/**", "/webjars/**", "/favicon.ico")
+                        .permitAll()
+
+                        // REST: защищённые токеном
                         .requestMatchers("/api/users/**").hasRole("ADMIN")
-                        .requestMatchers("/home", "/category/**", "/user/profile", "/message/**").authenticated()
+
+                        // Web-страницы (через сессию)
+                        .requestMatchers("/home", "/category/**", "/user/profile", "/message/**")
+                        .authenticated()
+
+                        // Остальное — только с токеном
                         .anyRequest().authenticated()
                 )
+
+                // Логин только для MVC сайта
                 .formLogin(form -> form
                         .loginPage("/login")
                         .defaultSuccessUrl("/home", true)
                         .failureUrl("/login?error=true")
                         .permitAll()
                 )
+
+                // Логаут
                 .logout(logout -> logout
                         .logoutSuccessUrl("/login?logout=true")
                         .permitAll()
                 )
-                .csrf(csrf -> csrf.disable())
-                .userDetailsService(customUserDetailsService)
-                .httpBasic(Customizer.withDefaults());
 
-        http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .httpBasic(Customizer.withDefaults());
 
         return http.build();
     }
