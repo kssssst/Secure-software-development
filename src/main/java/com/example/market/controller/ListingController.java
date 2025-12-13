@@ -42,10 +42,6 @@ public class ListingController {
         public Long categoryId;
     }
 
-    // ==========================
-    //       CRUD
-    // ==========================
-
     @PostMapping
     public ResponseEntity<?> create(@RequestBody ListingUpdateDTO dto) {
         Listing l = new Listing();
@@ -124,9 +120,6 @@ public class ListingController {
         return ResponseEntity.ok("Listing deleted");
     }
 
-    // ==========================
-    //    Бизнес-процессы
-    // ==========================
 
     // 1. Поиск объявлений по категории
     @GetMapping("/category/{id}")

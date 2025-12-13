@@ -46,9 +46,7 @@ public class UserController {
                 .collect(Collectors.toList());
     }
 
-    // ===========================
     // CREATE
-    // ===========================
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public UserResponseDTO createUser(@RequestBody User user) {
