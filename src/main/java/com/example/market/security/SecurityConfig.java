@@ -60,7 +60,10 @@ public class SecurityConfig {
                         .permitAll()
                 )
                 .userDetailsService(customUserDetailsService)
-                .csrf(csrf -> csrf.disable())
+                .csrf(csrf -> csrf
+                        .ignoringRequestMatchers("/api/**") // REST API без CSRF
+                )
+
                 .httpBasic(Customizer.withDefaults()); // Включаем Basic Auth для Postman и REST
 
         return http.build();

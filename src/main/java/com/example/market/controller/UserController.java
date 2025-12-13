@@ -21,50 +21,64 @@ public class UserController {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    // Создание пользователя
-    @PostMapping
-    public UserResponseDTO create(@RequestBody User user) {
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        if (user.getRole() == null) user.setRole("USER");
-
-        User saved = repo.save(user);
-        return new UserResponseDTO(saved);
+    // Получение всех пользователей
+    @GetMapping
+    public List<UserResponseDTO> getAllUsers() {
+        return repo.findAll().stream()
+                .map(UserResponseDTO::new)
+                .collect(Collectors.toList());
     }
 
-    // Получение всех пользователей (без пароля)
-    @GetMapping
-    public List<UserResponseDTO> all() {
-        return repo.findAll()
+    // Получение одного пользователя по ID
+    @GetMapping("/{id}")
+    public UserResponseDTO getUserById(@PathVariable Long id) {
+        return repo.findById(id)
+                .map(UserResponseDTO::new)
+                .orElseThrow(() -> new RuntimeException("User not found with id " + id));
+    }
+
+    // Пользователи с наибольшим количеством объявлений
+    @GetMapping("/top-sellers")
+    public List<UserResponseDTO> getTopSellers() {
+        return repo.findTopUsersByListings()
                 .stream()
                 .map(UserResponseDTO::new)
                 .collect(Collectors.toList());
     }
 
-    // Получение одного пользователя (без пароля)
-    @GetMapping("/{id}")
-    public UserResponseDTO get(@PathVariable Long id) {
-        User user = repo.findById(id).orElse(null);
-        if (user == null) return null;
-        return new UserResponseDTO(user);
+    // ===========================
+    // CREATE
+    // ===========================
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping
+    public UserResponseDTO createUser(@RequestBody User user) {
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        User savedUser = repo.save(user);
+        return new UserResponseDTO(savedUser);
     }
 
+
+    // UPDATE
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
-    @PreAuthorize("#id == principal.id or hasRole('ADMIN')")
-    public UserResponseDTO updateUser(@PathVariable Long id, @RequestBody User u) {
-        User exist = repo.findById(id).orElse(null);
-        if (exist == null) return null;
-
-        exist.setName(u.getName());
-        exist.setEmail(u.getEmail());
-
-        User updated = repo.save(exist);
-        return new UserResponseDTO(updated);
+    public UserResponseDTO updateUser(@PathVariable Long id, @RequestBody User updatedUser) {
+        return repo.findById(id)
+                .map(user -> {
+                    user.setName(updatedUser.getName());
+                    if (updatedUser.getPassword() != null && !updatedUser.getPassword().isEmpty()) {
+                        user.setPassword(passwordEncoder.encode(updatedUser.getPassword()));
+                    }
+                    user.setEmail(updatedUser.getEmail());
+                    // Можно добавить другие поля
+                    return new UserResponseDTO(repo.save(user));
+                })
+                .orElseThrow(() -> new RuntimeException("User not found with id " + id));
     }
 
+    // DELETE
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')") // доступ только для админов
-    public String deleteUser(@PathVariable Long id) {
+    public void deleteUser(@PathVariable Long id) {
         repo.deleteById(id);
-        return "ok";
     }
 }

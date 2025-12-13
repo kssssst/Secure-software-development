@@ -1,5 +1,7 @@
 package com.example.market.dto;
 
+import com.example.market.model.User;
+
 public class UserDto {
     private Long id;
     private String name;
@@ -12,8 +14,13 @@ public class UserDto {
         this.id = id;
         this.name = name;
         this.email = email;
-        this.role = role;
     }
+
+    public UserDto(User user) {
+        this.id = user.getId();
+        this.name = user.getName();
+        this.email = user.getEmail();
+         }
 
     public Long getId() {
         return id;

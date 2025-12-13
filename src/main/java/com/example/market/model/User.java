@@ -33,9 +33,12 @@ public class User {
     @OneToMany(mappedBy = "reporter", cascade = CascadeType.REMOVE)
     private List<Report> reports;
 
+
+
     public User() {}
 
     // Getters and Setters
+    public List<Listing> getListings() {return listings;}
 
     public Long getId() {
         return id;
