@@ -2,6 +2,10 @@ package com.example.market.model;
 
 import jakarta.persistence.*;
 import java.util.List;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import java.util.Collection;
+import java.util.Collections;
 
 @Entity
 @Table(name = "users")
@@ -78,5 +82,11 @@ public class User {
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return Collections.singletonList(
+                new SimpleGrantedAuthority("ROLE_" + role)
+        );
     }
 }

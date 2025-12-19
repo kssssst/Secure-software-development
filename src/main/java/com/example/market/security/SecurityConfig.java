@@ -1,17 +1,21 @@
 package com.example.market.config;
 
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import com.example.market.security.CustomUserDetailsService;
+import com.example.market.security.jwt.JwtAuthenticationFilter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.Customizer;
-import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.beans.factory.annotation.Autowired;
-import com.example.market.security.CustomUserDetailsService;
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
-import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -21,80 +25,56 @@ public class SecurityConfig {
     @Autowired
     private CustomUserDetailsService customUserDetailsService;
 
+    @Autowired
+    private JwtAuthenticationFilter jwtAuthenticationFilter;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        // Используем новый обработчик CSRF токенов для лучшей совместимости
-        CsrfTokenRequestAttributeHandler requestHandler = new CsrfTokenRequestAttributeHandler();
-        requestHandler.setCsrfRequestAttributeName("_csrf"); // Устанавливаем имя атрибута
-
         http
+                .csrf(csrf -> csrf.disable()) // Отключаем CSRF для JWT
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // Stateless для JWT
+                )
                 .authorizeHttpRequests(auth -> auth
+                        // Публичные эндпоинты
                         .requestMatchers(
                                 "/",
-                                "/login",
+                                "/auth/**",
                                 "/register",
                                 "/css/**",
                                 "/js/**",
                                 "/images/**",
                                 "/webjars/**",
-                                "/favicon.ico",
-                                "/h2-console/**" // если используете H2
+                                "/favicon.ico"
                         ).permitAll()
+
+                        // Защищенные эндпоинты
                         .requestMatchers("/api/users/**").hasRole("ADMIN")
-                        .requestMatchers(
-                                "/home",
-                                "/category/**",
-                                "/user/profile",
-                                "/message/**"
-                        ).authenticated()
+                        .requestMatchers("/api/**").authenticated()
+
                         .anyRequest().authenticated()
                 )
-                .formLogin(form -> form
-                        .loginPage("/login")
-                        .defaultSuccessUrl("/home", true)
-                        .failureUrl("/login?error=true")
-                        .permitAll()
-                )
-                .logout(logout -> logout
-                        .logoutSuccessUrl("/login?logout=true")
-                        .permitAll()
-                )
-                .userDetailsService(customUserDetailsService)
-                .csrf(csrf -> csrf
-                        // Используем Cookie для хранения CSRF токена
-                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                        // Настраиваем обработчик
-                        .csrfTokenRequestHandler(requestHandler)
-                        // Игнорируем CSRF для следующих эндпоинтов (обычно это API или вебхуки)
-                        .ignoringRequestMatchers(
-                                "/api/auth/register", // регистрация открыта для всех
-                                "/h2-console/**",     // консоль H2 (если используется)
-                                // Добавьте сюда другие эндпоинты, которые не должны требовать CSRF
-                                "/api/public/**"      // пример публичного API
-                        )
-                )
-                .httpBasic(Customizer.withDefaults())
-                // Отключаем защиту от кликджекинга для H2 консоли (если используется)
-                .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()));
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
     @Bean
+    public DaoAuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+        authProvider.setUserDetailsService(customUserDetailsService);
+        authProvider.setPasswordEncoder(passwordEncoder());
+        return authProvider;
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
+        return authConfig.getAuthenticationManager();
+    }
+
+    @Bean
     public PasswordEncoder passwordEncoder() {
-        // ВАЖНО: В продакшене используйте BCryptPasswordEncoder!
-        // return new BCryptPasswordEncoder();
-
-        return new PasswordEncoder() {
-            @Override
-            public String encode(CharSequence rawPassword) {
-                return rawPassword.toString();
-            }
-
-            @Override
-            public boolean matches(CharSequence rawPassword, String encodedPassword) {
-                return rawPassword.toString().equals(encodedPassword);
-            }
-        };
+        // Используем BCrypt для хеширования паролей
+        return new BCryptPasswordEncoder();
     }
 }
