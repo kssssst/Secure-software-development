@@ -2,7 +2,7 @@ name: CI/CD Pipeline with TLS
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main, Lab_6 ]
   pull_request:
     branches: [ main ]
 
