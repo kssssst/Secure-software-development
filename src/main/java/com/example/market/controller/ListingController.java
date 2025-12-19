@@ -141,21 +141,21 @@ public class ListingController {
                 .collect(Collectors.toList());
     }
 
-    // 3. Самый дешевый товар в категории
+    // 3. Самый дешевый товар ReportResponse.java категории
     @GetMapping("/category/{id}/cheapest")
     public ResponseEntity<?> getCheapestInCategory(@PathVariable Long id) {
         Listing l = repo.findTopByCategoryIdOrderByPriceAsc(id);
         return l != null ? ResponseEntity.ok(new ListingDTO(l)) : ResponseEntity.badRequest().body("No listings found");
     }
 
-    // 4. Самый дорогой товар в категории
+    // 4. Самый дорогой товар ReportResponse.java категории
     @GetMapping("/category/{id}/most-expensive")
     public ResponseEntity<?> getMostExpensive(@PathVariable Long id) {
         Listing l = repo.findTopByCategoryIdOrderByPriceDesc(id);
         return l != null ? ResponseEntity.ok(new ListingDTO(l)) : ResponseEntity.badRequest().body("No listings found");
     }
 
-    // 5. Средняя цена товаров в категории
+    // 5. Средняя цена товаров ReportResponse.java категории
     @GetMapping("/category/{id}/average-price")
     public Double getAveragePrice(@PathVariable Long id) {
         return repo.findAveragePriceByCategory(id);

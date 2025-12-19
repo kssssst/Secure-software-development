@@ -15,7 +15,7 @@ public class UserService {
     @Autowired
     private UserRepository userRepository;
 
-    // Преобразование User в UserResponseDTO
+    // Преобразование User ReportResponse.java UserResponseDTO
     public UserResponseDTO convertToDTO(User user) {
         if (user == null) return null;
         return new UserResponseDTO(user);

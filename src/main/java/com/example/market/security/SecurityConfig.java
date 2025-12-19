@@ -10,6 +10,8 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.example.market.security.CustomUserDetailsService;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 
 @Configuration
 @EnableWebSecurity
@@ -21,9 +23,12 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        // Используем новый обработчик CSRF токенов для лучшей совместимости
+        CsrfTokenRequestAttributeHandler requestHandler = new CsrfTokenRequestAttributeHandler();
+        requestHandler.setCsrfRequestAttributeName("_csrf"); // Устанавливаем имя атрибута
+
         http
                 .authorizeHttpRequests(auth -> auth
-                        // Доступ без аутентификации
                         .requestMatchers(
                                 "/",
                                 "/login",
@@ -32,21 +37,16 @@ public class SecurityConfig {
                                 "/js/**",
                                 "/images/**",
                                 "/webjars/**",
-                                "/favicon.ico"
+                                "/favicon.ico",
+                                "/h2-console/**" // если используете H2
                         ).permitAll()
-
-                        // REST API требует роли ADMIN для удаления и редактирования пользователей
                         .requestMatchers("/api/users/**").hasRole("ADMIN")
-
-                        // Веб-контроллеры требуют аутентификации
                         .requestMatchers(
                                 "/home",
                                 "/category/**",
                                 "/user/profile",
                                 "/message/**"
                         ).authenticated()
-
-                        // Все остальные запросы требуют аутентификации
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
@@ -61,17 +61,30 @@ public class SecurityConfig {
                 )
                 .userDetailsService(customUserDetailsService)
                 .csrf(csrf -> csrf
-                        .ignoringRequestMatchers("/api/**") // REST API без CSRF
+                        // Используем Cookie для хранения CSRF токена
+                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                        // Настраиваем обработчик
+                        .csrfTokenRequestHandler(requestHandler)
+                        // Игнорируем CSRF для следующих эндпоинтов (обычно это API или вебхуки)
+                        .ignoringRequestMatchers(
+                                "/api/auth/register", // регистрация открыта для всех
+                                "/h2-console/**",     // консоль H2 (если используется)
+                                // Добавьте сюда другие эндпоинты, которые не должны требовать CSRF
+                                "/api/public/**"      // пример публичного API
+                        )
                 )
-
-                .httpBasic(Customizer.withDefaults()); // Включаем Basic Auth для Postman и REST
+                .httpBasic(Customizer.withDefaults())
+                // Отключаем защиту от кликджекинга для H2 консоли (если используется)
+                .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()));
 
         return http.build();
     }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        // Plain text password encoder для тестирования
+        // ВАЖНО: В продакшене используйте BCryptPasswordEncoder!
+        // return new BCryptPasswordEncoder();
+
         return new PasswordEncoder() {
             @Override
             public String encode(CharSequence rawPassword) {
