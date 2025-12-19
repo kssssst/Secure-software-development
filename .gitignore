@@ -31,3 +31,18 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# ============ SSL Certificates and Keys ============
+*.key
+*.p12
+*.pem
+*.crt
+*.csr
+*.srl
+
+# SSL folder (except README)
+src/main/resources/ssl/*
+!src/main/resources/ssl/README.md
+
+# Root CA files
+market-ssl-certificates/

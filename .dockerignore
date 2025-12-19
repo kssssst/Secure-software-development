@@ -1,0 +1,42 @@
+# Ignore everything
+*
+
+# Allow specific files and directories
+!src/
+!pom.xml
+!Dockerfile
+!.github/
+
+# Ignore build outputs
+target/
+bin/
+*.jar
+*.war
+*.ear
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Temp files
+tmp/
+*.tmp
+*.temp
+
+# SSL certificates (will be generated)
+*.key
+*.p12
+*.pem
+*.crt
