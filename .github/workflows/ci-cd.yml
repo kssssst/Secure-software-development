@@ -10,7 +10,7 @@ env:
   KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
 
 jobs:
-  build-and-test:
+  build-test:
     runs-on: ubuntu-latest
 
     steps:
