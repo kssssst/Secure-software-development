@@ -24,11 +24,7 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
-      - name: Build with Maven
-        run: mvn -B clean compile
 
-      - name: Run tests
-        run: mvn -B test
 
       - name: Create SSL directory structure
         run: |
@@ -42,6 +38,23 @@ jobs:
           echo "Keystore file created successfully"
           ls -la src/main/resources/ssl/
           echo "Keystore size:" $(wc -c < src/main/resources/ssl/studentlab.p12) "bytes"
+
+
+      - name: Build with Maven
+        run: mvn -B clean compile
+
+      - name: Run tests
+        run: mvn -B test
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: |
+            target/surefire-reports/
+            target/failsafe-reports/
+            
 
       - name: Package application with TLS
         run: mvn -B package -DskipTests
