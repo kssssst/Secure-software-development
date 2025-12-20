@@ -1,4 +1,4 @@
-package com.example.market.config;
+package com.example.market.security;
 
 import com.example.market.security.CustomUserDetailsService;
 import com.example.market.security.jwt.JwtAuthenticationFilter;
