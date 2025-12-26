@@ -69,7 +69,7 @@ jobs:
           retention-days: 7
 
       - name: Package application with TLS
-        run: mvn -B package -DskipTests
+        run: mvn -B package
 
       - name: List target directory
         run: ls -la target/
